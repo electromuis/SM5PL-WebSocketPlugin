@@ -69,7 +69,7 @@ WebSocketHandler::WebSocketHandler(WebSocketPlugin* plugin)
 		if (!req->request["title"].isString())
 			return false;
 
-		return me->SelectSong(req->request["group"].asCString(), req->response["title"].asCString());
+		return me->SelectSong(req->request["group"].asCString(), req->request["title"].asCString());
 	});
 
 	RegisterFunction("RunLua", [me](SocketRequest* req) {
@@ -354,6 +354,9 @@ bool SocketRequest::HandleRequest(string requestString)
 		if (!request["action"].isString() || functions.count(request["action"].asString()) == 0)
 			throw std::runtime_error("Message action missing/invalid");
 
+		if (request.isMember("id")) {
+			response["id"] = request["id"];
+		}
 		response["success"] = functions.at(request["action"].asString())(this);
 	}
 	catch (std::exception& e) {
@@ -422,10 +425,19 @@ void WebSocketHandler::GetSongsInGroup(RString group, Json::Value& response)
 	vector<Song*> songs = SONGMAN->GetSongs(group);
 	for (Song* song : songs)
 	{
-		int s = response["songs"].size();
-		response["songs"][s]["title"] = song->m_sMainTitle;
-		response["songs"][s]["artist"] = song->m_sArtist;
-		response["songs"][s]["banner"] = song->GetBannerPath();
+		Json::Value& jSong = response["songs"][response["songs"].size()];
+		jSong["title"] = song->m_sMainTitle;
+		jSong["artist"] = song->m_sArtist;
+		jSong["banner"] = song->GetBannerPath();
+
+		auto steps = song->GetAllSteps();
+		for (auto& step : steps)
+		{
+			Json::Value& jStep = jSong["steps"][jSong["steps"].size()];
+			jStep["meter"] = step->GetMeter();
+			jStep["description"] = step->GetCredit();
+			jStep["type"] = StringConversion::ToString(step->m_StepsType);
+		}
 	}
 }
 

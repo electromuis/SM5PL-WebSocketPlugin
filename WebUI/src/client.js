@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 let requests = {}
-export const client = new WebSocket("ws://192.168.2.21:8081");
+export const client = new WebSocket("ws://192.168.2.2:8081");
 
 client.onmessage = (e) => {
     const message = JSON.parse(e.data);

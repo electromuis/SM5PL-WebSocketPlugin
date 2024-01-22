@@ -30,7 +30,7 @@
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 
-chrono::high_resolution_clock::time_point lastBroadcast;
+std::chrono::high_resolution_clock::time_point lastBroadcast;
 std::map<RString, SocketFunction> functions;
 
 WebSocketHandler::WebSocketHandler(WebSocketPlugin* plugin)
@@ -243,7 +243,7 @@ bool WebSocketHandler::ReadUDPBroadcast()
 	}
 	*/
 
-	string data = buffer;
+	std::string data = buffer;
 	if (data.substr(0, strlen(UDP_KEY)) != UDP_KEY)
 		return false;
 	data = data.substr(strlen(UDP_KEY));
@@ -264,7 +264,7 @@ bool WebSocketHandler::SendUDPBroadcast(Json::Value message)
 	addr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 
 	int len = sizeof(struct sockaddr_in);
-	string udpMessage = UDP_KEY;
+	std::string udpMessage = UDP_KEY;
 
 	Json::FastWriter writer;
 	udpMessage.append(writer.write(message));
@@ -317,13 +317,13 @@ void WebSocketHandler::on_http(connection_hdl hdl)
 		con->set_body(ss.str());
 		con->set_status(websocketpp::http::status_code::not_found);
 
-		LOG->Warn(PLUGIN_NAME" :: File not found: %s", filename);
+		LOG->Warn("WebSocketHandler :: File not found: %s", filename);
 
 		return;
 	}
 
 
-	LOG->Warn(PLUGIN_NAME" :: Serving file: %s", filename);
+	LOG->Warn("WebSocketHandler :: Serving file: %s", filename);
 
 	file.seekg(0, std::ios::end);
 	response.reserve(file.tellg());
@@ -341,13 +341,13 @@ void WebSocketHandler::RegisterFunction(RString name, SocketFunction function)
 	functions.emplace(name, function);
 }
 
-bool SocketRequest::HandleRequest(string requestString)
+bool SocketRequest::HandleRequest(std::string requestString)
 {
 	try {
 		Json::Reader reader;
 
 		if (!reader.parse(requestString, request)) {
-			string err = reader.getFormatedErrorMessages();
+			std::string err = reader.getFormatedErrorMessages();
 			throw std::runtime_error(err.c_str());
 		}
 
@@ -360,7 +360,7 @@ bool SocketRequest::HandleRequest(string requestString)
 		response["success"] = functions.at(request["action"].asString())(this);
 	}
 	catch (std::exception& e) {
-		LOG->Warn(PLUGIN_NAME" :: Socket :: %s", e.what());
+		LOG->Warn("WebSocketHandler :: Socket :: %s", e.what());
 
 		response["success"] = false;
 		response["message"] = e.what();
@@ -383,7 +383,7 @@ void WebSocketHandler::on_message(connection_hdl hdl, ws_server::message_ptr msg
 
 bool WebSocketHandler::SelectSong(RString group, RString songTitle)
 {
-	vector<Song*> songs = SONGMAN->GetSongs(group);
+	std::vector<Song*> songs = SONGMAN->GetSongs(group);
 	Song* song = nullptr;
 	for (Song* s : songs)
 	{
@@ -422,7 +422,7 @@ bool WebSocketHandler::SelectSong(RString group, RString songTitle)
 
 void WebSocketHandler::GetSongsInGroup(RString group, Json::Value& response)
 {
-	vector<Song*> songs = SONGMAN->GetSongs(group);
+	std::vector<Song*> songs = SONGMAN->GetSongs(group);
 	for (Song* song : songs)
 	{
 		Json::Value& jSong = response["songs"][response["songs"].size()];

@@ -1,9 +1,3 @@
-#pragma once
-
-#include <iostream>
-#include <fstream>
-using namespace std;
-
 #include "global.h"
 #include "WebSocketPlugin.h"
 #include "SocketHandler.h"
@@ -11,6 +5,10 @@ using namespace std;
 #include "RageLog.h"
 #include "ScreenManager.h"
 #include "Screen.h"
+
+#include <iostream>
+#include <fstream>
+using namespace std;
 
 REGISTER_PLUGIN(WebSocketPlugin, "0.0.1", "Electromuis")
 
@@ -22,13 +20,13 @@ WebSocketPlugin::WebSocketPlugin()
 	:libraryPath(""), subscriber(this)
 {
 	handler = make_unique<WebSocketHandler>(this);
-	LOG->Info(PLUGIN_NAME" loaded");
+	LOG->Info("WebSocketPlugin loaded");
 }
 
 WebSocketPlugin::~WebSocketPlugin()
 {
 	delete handler.release();
-	LOG->Info(PLUGIN_NAME" unloaded");
+	LOG->Info("WebSocketPlugin unloaded");
 }
 
 void WebSocketPlugin::RegisterFunctionInternal(RString name, SocketFunction function)
@@ -49,7 +47,7 @@ bool RegisterFunction(PluginBase* p, RString name, SocketFunction function)
 void* WebSocketPlugin::GetSymbol(const char* name)
 {
 	if (strcmp(name, "RegisterFunction") == 0)
-		return RegisterFunction;
+		return (void*)RegisterFunction;
 
 	return nullptr;
 }
